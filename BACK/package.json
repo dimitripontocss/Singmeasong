@@ -1,11 +1,12 @@
 {
   "name": "typescript-back-template",
   "version": "1.0.0",
-  "type": "module",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/server.ts"
+    "dev": "nodemon src/server.ts",
+    "prisma-test": "dotenv -e .env.test prisma migrate reset --skip-seed",
+    "test": "npm run prisma-test && dotenv -e .env.test jest --no-cache"
   },
   "keywords": [],
   "author": "",
@@ -30,7 +31,7 @@
   },
   "dependencies": {
     "@faker-js/faker": "^7.5.0",
-    "@prisma/client": "^3.13.0",
+    "@prisma/client": "^4.3.1",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
