@@ -15,8 +15,8 @@ beforeEach(async () => {
 
 const server = supertest(app);
 
-describe("Testing recomendation routers", () => {
-  it("Testing POST / with valid information", async () => {
+describe("Testing POST recomendation routers", () => {
+  it("Testing POST /recommendations with valid information", async () => {
     const recommendationData = await createRecommendation();
 
     const result = await server
@@ -33,7 +33,70 @@ describe("Testing recomendation routers", () => {
     expect(verifier).not.toBeNull();
   });
 
-  it("Testing GET / ", async () => {
+  it("Testing POST /recommendations/:id/upvote", async () => {
+    const insertedRecommendation =
+      await createScenarioWithRecommendationPosted();
+
+    const result = await server.post(
+      `/recommendations/${insertedRecommendation.id}/upvote`
+    );
+
+    const verifier = await prisma.recommendation.findFirst({
+      where: {
+        id: insertedRecommendation.id,
+      },
+    });
+
+    expect(result.status).toBe(200);
+    expect(verifier.score).toBe(1);
+  });
+
+  it("Testing POST /recommendations/:id/downvote", async () => {
+    const insertedRecommendation =
+      await createScenarioWithRecommendationPosted();
+
+    const result = await server.post(
+      `/recommendations/${insertedRecommendation.id}/downvote`
+    );
+
+    const verifier = await prisma.recommendation.findFirst({
+      where: {
+        id: insertedRecommendation.id,
+      },
+    });
+
+    expect(result.status).toBe(200);
+    expect(verifier.score).toBe(-1);
+  });
+
+  it("Testing if a recommendation with a score minor than -5 is deleted", async () => {
+    const insertedRecommendation =
+      await createScenarioWithRecommendationPosted();
+
+    await server.post(`/recommendations/${insertedRecommendation.id}/downvote`);
+    await server.post(`/recommendations/${insertedRecommendation.id}/downvote`);
+    await server.post(`/recommendations/${insertedRecommendation.id}/downvote`);
+    await server.post(`/recommendations/${insertedRecommendation.id}/downvote`);
+    await server.post(`/recommendations/${insertedRecommendation.id}/downvote`);
+    const lastApearence = await prisma.recommendation.findFirst({
+      where: {
+        id: insertedRecommendation.id,
+      },
+    });
+    await server.post(`/recommendations/${insertedRecommendation.id}/downvote`);
+
+    const verifier = await prisma.recommendation.findFirst({
+      where: {
+        id: insertedRecommendation.id,
+      },
+    });
+    expect(lastApearence.score).toBe(-5);
+    expect(verifier).toBeNull();
+  });
+});
+
+describe("Testing GET recomendation routers", () => {
+  it("Testing GET /recommendations ", async () => {
     const insertedRecommendation =
       await createScenarioWithRecommendationPosted();
 
@@ -41,6 +104,40 @@ describe("Testing recomendation routers", () => {
 
     expect(result.status).toBe(200);
     expect(result.body[0].name).toEqual(insertedRecommendation.name);
+  });
+
+  it("Testing GET /recommendations/:id ", async () => {
+    const insertedRecommendation =
+      await createScenarioWithRecommendationPosted();
+
+    const result = await server.get(
+      `/recommendations/${insertedRecommendation.id}`
+    );
+
+    expect(result.body.name).toEqual(insertedRecommendation.name);
+  });
+
+  it.todo("Testing GET /recommendations/random");
+
+  it("Testing GET /recommendations/random with no recommendation registered", async () => {
+    const result = await server.get("/recommendations/random");
+
+    expect(result.status).toBe(404);
+  });
+
+  it("Testing GET /recommendations/top/:amount", async () => {
+    const result = await server.get("/recommendations/top/0");
+
+    expect(result.body.length).toBe(0);
+  });
+
+  it("Testing GET /recommendations/top/:amount", async () => {
+    await createScenarioWithRecommendationPosted();
+    await createScenarioWithRecommendationPosted();
+    await createScenarioWithRecommendationPosted();
+    const result = await server.get("/recommendations/top/3");
+
+    expect(result.body.length).toBe(3);
   });
 });
 
