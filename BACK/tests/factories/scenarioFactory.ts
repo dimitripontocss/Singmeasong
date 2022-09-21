@@ -14,6 +14,17 @@ export async function createScenarioWithRecommendationPosted() {
   });
 }
 
+export async function createRecommendationWith5Downvotes() {
+  const { name, youtubeLink } = await createRecommendation();
+  return await prisma.recommendation.create({
+    data: {
+      name,
+      youtubeLink,
+      score: -5,
+    },
+  });
+}
+
 export async function disconnectPrisma() {
   await prisma.$disconnect();
 }

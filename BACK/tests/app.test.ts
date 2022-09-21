@@ -3,6 +3,7 @@ import app from "../src/app";
 import { prisma } from "../src/database";
 
 import {
+  createRecommendationWith5Downvotes,
   createScenarioWithRecommendationPosted,
   deleteAllData,
   disconnectPrisma,
@@ -31,6 +32,16 @@ describe("Testing POST recomendation routers", () => {
 
     expect(result.status).toBe(201);
     expect(verifier).not.toBeNull();
+  });
+
+  it("Testing POST /recommendations with same name", async () => {
+    const recommendationData = await createScenarioWithRecommendationPosted();
+    const result = await server.post("/recommendations/").send({
+      name: recommendationData.name,
+      youtubeLink: recommendationData.youtubeLink,
+    });
+
+    expect(result.status).toBe(409);
   });
 
   it("Testing POST /recommendations/:id/upvote", async () => {
@@ -70,14 +81,7 @@ describe("Testing POST recomendation routers", () => {
   });
 
   it("Testing if a recommendation with a score minor than -5 is deleted", async () => {
-    const insertedRecommendation =
-      await createScenarioWithRecommendationPosted();
-
-    await server.post(`/recommendations/${insertedRecommendation.id}/downvote`);
-    await server.post(`/recommendations/${insertedRecommendation.id}/downvote`);
-    await server.post(`/recommendations/${insertedRecommendation.id}/downvote`);
-    await server.post(`/recommendations/${insertedRecommendation.id}/downvote`);
-    await server.post(`/recommendations/${insertedRecommendation.id}/downvote`);
+    const insertedRecommendation = await createRecommendationWith5Downvotes();
     const lastApearence = await prisma.recommendation.findFirst({
       where: {
         id: insertedRecommendation.id,
