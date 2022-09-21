@@ -100,7 +100,7 @@ describe("Testing POST recomendation routers", () => {
 });
 
 describe("Testing GET recomendation routers", () => {
-  it("Testing GET /recommendations ", async () => {
+  it("Testing GET /recommendations and should list recommendations ", async () => {
     const insertedRecommendation =
       await createScenarioWithRecommendationPosted();
 
@@ -110,7 +110,7 @@ describe("Testing GET recomendation routers", () => {
     expect(result.body[0].name).toEqual(insertedRecommendation.name);
   });
 
-  it("Testing GET /recommendations/:id ", async () => {
+  it("Testing GET /recommendations/:id and should list recommendation", async () => {
     const insertedRecommendation =
       await createScenarioWithRecommendationPosted();
 
@@ -119,23 +119,28 @@ describe("Testing GET recomendation routers", () => {
     );
 
     expect(result.body.name).toEqual(insertedRecommendation.name);
+    expect(result.status).toBe(200);
   });
 
-  it.todo("Testing GET /recommendations/random");
+  it("Testing GET /recommendations/random and should list recommendation", async () => {
+    await createScenarioWithRecommendationPosted();
+    const result = await supertest(app).get("/recommendations/random");
+    expect(result.status).toBe(200);
+  });
 
-  it("Testing GET /recommendations/random with no recommendation registered", async () => {
+  it("Testing GET /recommendations/random with no recommendation registered and should fail", async () => {
     const result = await server.get("/recommendations/random");
 
     expect(result.status).toBe(404);
   });
 
-  it("Testing GET /recommendations/top/:amount", async () => {
+  it("Testing GET /recommendations/top/:amount and should list recommendations", async () => {
     const result = await server.get("/recommendations/top/0");
 
     expect(result.body.length).toBe(0);
   });
 
-  it("Testing GET /recommendations/top/:amount", async () => {
+  it("Testing GET /recommendations/top/:amount and should list recommendations", async () => {
     await createScenarioWithRecommendationPosted();
     await createScenarioWithRecommendationPosted();
     await createScenarioWithRecommendationPosted();
