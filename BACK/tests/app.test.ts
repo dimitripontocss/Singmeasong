@@ -44,6 +44,16 @@ describe("Testing POST recomendation routers", () => {
     expect(result.status).toBe(409);
   });
 
+  it("Testing POST /recommendations with invalid information", async () => {
+    const recommendationData = null;
+
+    const result = await server
+      .post("/recommendations/")
+      .send(recommendationData);
+
+    expect(result.status).toBe(422);
+  });
+
   it("Testing POST /recommendations/:id/upvote", async () => {
     const insertedRecommendation =
       await createScenarioWithRecommendationPosted();
@@ -60,6 +70,12 @@ describe("Testing POST recomendation routers", () => {
 
     expect(result.status).toBe(200);
     expect(verifier.score).toBe(1);
+  });
+
+  it("Testing POST /recommendations/:id/upvote with a unexisting id", async () => {
+    const result = await server.post(`/recommendations/5/upvote`);
+
+    expect(result.status).toBe(404);
   });
 
   it("Testing POST /recommendations/:id/downvote", async () => {
@@ -96,6 +112,12 @@ describe("Testing POST recomendation routers", () => {
     });
     expect(lastApearence.score).toBe(-5);
     expect(verifier).toBeNull();
+  });
+
+  it("Testing POST /recommendations/:id/downvote with a unexisting id", async () => {
+    const result = await server.post(`/recommendations/5/downvote`);
+
+    expect(result.status).toBe(404);
   });
 });
 
