@@ -1,14 +1,14 @@
 import supertest from "supertest";
-import app from "../src/app";
-import { prisma } from "../src/database";
+import app from "../../src/app";
+import { prisma } from "../../src/database";
 
 import {
   createRecommendationWith5Downvotes,
   createScenarioWithRecommendationPosted,
   deleteAllData,
   disconnectPrisma,
-} from "./factories/scenarioFactory";
-import { createRecommendation } from "./factories/recommendationFactory";
+} from ".././factories/scenarioFactory";
+import { createRecommendation } from ".././factories/recommendationFactory";
 
 beforeEach(async () => {
   await deleteAllData();
@@ -42,16 +42,6 @@ describe("Testing POST recomendation routers", () => {
     });
 
     expect(result.status).toBe(409);
-  });
-
-  it("Testing POST /recommendations with invalid information", async () => {
-    const recommendationData = null;
-
-    const result = await server
-      .post("/recommendations/")
-      .send(recommendationData);
-
-    expect(result.status).toBe(422);
   });
 
   it("Testing POST /recommendations/:id/upvote", async () => {
