@@ -2,6 +2,7 @@ import { prisma } from "../../src/database";
 
 import { recommendationService } from "../../src/services/recommendationsService";
 import { recommendationRepository } from "../../src/repositories/recommendationRepository";
+import { conflictError, notFoundError } from "../../src/utils/errorUtils";
 
 beforeEach(async () => {
   await prisma.$executeRaw`TRUNCATE TABLE recommendations`;
@@ -35,16 +36,15 @@ describe("insert recommendations", () => {
       name: "wilian",
       youtubeLink: "https://www.youtube.com/watch?v=GqLrlHHeww0",
     };
+    const message = "Recommendations names must be unique";
     jest
       .spyOn(recommendationRepository, "findByName")
       .mockImplementationOnce((): any => {
         return true;
       });
-    const promisse = recommendationService.insert(createRecommendationData);
-    expect(promisse).rejects.toEqual({
-      type: "conflict",
-      message: "Recommendations names must be unique",
-    });
+
+    const result = recommendationService.insert(createRecommendationData);
+    expect(result).rejects.toEqual(conflictError(message));
   });
 });
 
@@ -73,8 +73,8 @@ describe("upvote on video", () => {
         return false;
       });
 
-    const promisse = recommendationService.upvote(1);
-    expect(promisse).rejects.toEqual({ type: "not_found", message: "" });
+    const result = recommendationService.upvote(1);
+    expect(result).rejects.toEqual(notFoundError(""));
   });
 });
 
@@ -107,6 +107,7 @@ describe("downvote on video", () => {
     expect(recommendationRepository.updateScore).toBeCalled();
     expect(recommendationRepository.remove).not.toBeCalled();
   });
+
   it("shold downvote on video and remove recommendation", async () => {
     const recommendation = {
       id: 1,
@@ -144,8 +145,8 @@ describe("downvote on video", () => {
       .mockImplementationOnce((): any => {
         return false;
       });
-    const promisse = recommendationService.downvote(1);
-    expect(promisse).rejects.toEqual({ type: "not_found", message: "" });
+    const result = recommendationService.downvote(1);
+    expect(result).rejects.toEqual(notFoundError(""));
   });
 });
 
@@ -180,6 +181,7 @@ describe("get an randon recomendation", () => {
     const response = await recommendationService.getRandom();
     expect(response.name).toEqual(recommendation[0].name);
   });
+
   it("shold return an recommendation score for score < 0.7", async () => {
     const recommendation = [
       {
@@ -198,6 +200,7 @@ describe("get an randon recomendation", () => {
     const response = await recommendationService.getRandom();
     expect(response.name).toEqual(recommendation[0].name);
   });
+
   it("should fail if there are no recommendations", async () => {
     const recommendation = [];
     jest.spyOn(Math, "random").mockReturnValueOnce(0.6);
@@ -206,8 +209,8 @@ describe("get an randon recomendation", () => {
       .mockImplementationOnce((): any => {
         return recommendation;
       });
-    const response = recommendationService.getRandom();
-    expect(response).rejects.toEqual({ type: "not_found", message: "" });
+    const result = recommendationService.getRandom();
+    expect(result).rejects.toEqual(notFoundError(""));
   });
 });
 describe("list top score recommendations", () => {
