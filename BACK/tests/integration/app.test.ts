@@ -29,7 +29,6 @@ describe("Testing POST recomendation routers", () => {
         name: recommendationData.name,
       },
     });
-    console.log(verifier);
 
     expect(result.status).toBe(201);
     expect(verifier).not.toBeNull();
